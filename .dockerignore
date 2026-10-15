@@ -1,0 +1,14 @@
+# 构建上下文排除项
+# 注意：config/default.json 需 COPY 进镜像，故不整目录排除；真实配置（含密码/token/内网信息）一律排除
+node_modules
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+DEPLOY.md
+logs
+cli-out*.txt
+*.log
+config-example
+config/biz.rules.jsonc
+config/local.json

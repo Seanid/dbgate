@@ -1,0 +1,35 @@
+# DBGate 网关 — Docker Compose 部署
+# 用法：docker compose up -d --build
+# 安全默认：端口仅绑定 127.0.0.1（本机可达，与直接运行行为一致）；真实配置只读挂载，不进入镜像。
+# 若 DBGate 需要被同局域网其他机器/Agent 访问，把 ports 改为 "8787:8787"。
+services:
+  dbgate:
+    build: .
+    image: dbgate:latest
+    container_name: dbgate
+    restart: unless-stopped
+    # 回收孤儿进程，避免僵尸进程堆积
+    init: true
+    ports:
+      - "127.0.0.1:8787:8787"
+    environment:
+      - TZ=Asia/Shanghai
+      - LOG_LEVEL=info
+    volumes:
+      # 真实业务配置与机密只读挂载（密码/token 只在运行期进入容器，不落镜像层）
+      - ./config/biz.rules.jsonc:/app/config/biz.rules.jsonc:ro
+      - ./config/local.json:/app/config/local.json:ro
+      # 审计日志持久化（logs/audit-YYYY-MM-DD.jsonl）
+      - dbgate-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8787/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    # 如需直连宿主机网络上的内网 MySQL（域名需宿主机可解析），可改用：
+    # network_mode: host
+    # （Windows/macOS Docker Desktop 不支持 host 模式；此时保持 bridge 即可，容器默认复用宿主机 DNS）
+
+volumes:
+  dbgate-logs:

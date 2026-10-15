@@ -141,7 +141,9 @@ mysql -h10.0.0.11 -uagent_ro -p app_prod -e "CREATE TABLE t(i int);"
 
 ## 5. 启动
 
+**Docker 部署（推荐）见 [`DEPLOY.md`](DEPLOY.md)**：镜像零敏感信息、真实配置运行时挂载、一键 `docker compose up -d --build`。
 
+直接运行：
 
 ```
 npm start            # HTTP REST，监听 127.0.0.1:8787（仅本机）
