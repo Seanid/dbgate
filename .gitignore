@@ -1,0 +1,9 @@
+node_modules/
+# 本地真实配置目录（含内网实例信息与密码/token）整体不进仓库；部署示例见 config-example/
+config/
+# 运行时产物与临时调试文件
+logs/*
+!logs/.gitkeep
+*.log
+cli-out*.txt
+.DS_Store

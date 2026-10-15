@@ -1,0 +1,106 @@
+{
+  // ★★ 示例配置（config-example）★★
+  // 本文件为演示用途的普通示例：实例地址、库名、表名、appid 均为虚构，
+  // 不含任何真实环境信息。部署时请基于真实环境重写为 config/biz.rules.jsonc。
+  // 密码与 token 放 local.json（.gitignore），这里不放任何机密。
+  // 变更本文件后必须执行预检，见 README「配置变更后的必做动作」。
+
+  "instances": {
+    "shard-a": {
+      "host": "10.0.0.11",
+      "port": 3306,
+      "user": "agent_ro",
+      "database": "app_prod",
+      "connectionLimit": 8,
+      "lazy": false
+    },
+    "shard-b": {
+      "host": "10.0.0.12",
+      "port": 3306,
+      "user": "agent_ro",
+      "database": "app_prod",
+      "connectionLimit": 8,
+      "lazy": false
+    },
+    "shard-c": {
+      "host": "10.0.0.13",
+      "port": 3306,
+      "user": "agent_ro",
+      "database": "app_prod",
+      "connectionLimit": 8,
+      "lazy": false
+    },
+    // 一个实例可绑定多个库（逗号分隔）：查询时对该实例每个库都遍历并归并
+    "archive-1": {
+      "host": "10.0.0.20",
+      "port": 3306,
+      "user": "agent_ro",
+      "database": "app_archive,app_audit",
+      "connectionLimit": 4,
+      "lazy": true
+    }
+  },
+
+  "bizTypes": {
+    "order": {
+      "traversal": "fanout",
+      "members": [
+        { "instance": "shard-a" },
+        { "instance": "shard-b" },
+        { "instance": "shard-c" }
+      ],
+      "concurrency": 4,
+      "failurePolicy": "bestEffort",
+      "warnOnMultiHit": true
+    },
+    "order_archive": {
+      "traversal": "fanout",
+      "members": [
+        { "instance": "archive-1", "tablePrefix": "orders_arch" }
+      ],
+      "failurePolicy": "strict"
+    },
+    "payment": {
+      "traversal": "route",
+      "route": { "app_1001": "shard-a", "app_1002": "shard-b" },
+      "members": [
+        { "instance": "shard-a" },
+        { "instance": "shard-b" }
+      ],
+      "failurePolicy": "strict"
+    }
+  },
+
+  "tableRoutes": [
+    { "match": "aaa_%", "members": [{ "instance": "shard-a" }, { "instance": "shard-b" }], "traversal": "fanout" },
+    { "match": "user_loan_%", "bizType": "order" },
+    { "match": "report_%", "bizType": "payment", "traversal": "route" }
+  ],
+
+  "tables": {
+    // 分表（默认 sharded=true）：物理表名 = tablePrefix_<归一化 appid>
+    "orders": {
+      "bizType": "order",
+      "tablePrefix": "orders",
+      "appidColumn": "app_id",
+      "defaultFields": "*",
+      "fields": {
+        "id": { "filterable": true, "sortable": true },
+        "app_id": { "locked": true },
+        "amount": { "filterable": true, "sortable": true, "aggregatable": true },
+        "created_at": { "filterable": true, "sortable": true },
+        "user_phone": { "filterable": false, "sortable": false, "mask": "phone" },
+        "internal_note": { "returnable": false }
+      }
+    },
+    "order_items": { "bizType": "order", "tablePrefix": "order_items" },
+    "order_summary": { "bizType": "order", "members": [{ "instance": "shard-a" }], "sharded": false },
+    "aaa_user": { "bizType": "order" },
+    "user_loan_summary": { "bizType": "order" },
+    "report_daily": { "bizType": "payment" },
+    // 多业务（逗号分隔）：同名物理表在两侧业务都遍历归并（示例：order 与 order_archive 都有同名表）
+    "cross_biz": { "bizType": "order,order_archive", "tablePrefix": "cross" },
+    // 非分表（精确表名的全局配置表）
+    "global_config": { "bizType": "payment", "sharded": false }
+  }
+}

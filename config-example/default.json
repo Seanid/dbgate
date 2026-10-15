@@ -1,0 +1,41 @@
+{
+  // DBGate 基础默认配置。合并顺序：default.json < biz.rules.jsonc < local.json
+  "http": { "host": "127.0.0.1", "port": 8787 },
+
+  "limits": {
+    "defaultRows": 200,
+    "maxRows": 500,
+    "maxOffset": 10000,
+    "fanoutMaxOffset": 1000,
+    "queryTimeoutMs": 5000,
+    "maxFilters": 10,
+    "maxSortKeys": 3,
+    "maxInValues": 500,
+    "maxResponseBytes": 1048576,
+    "maxTargetsPerQuery": 16,
+    "maxConcurrency": 4,
+    "maxDistinctCardinality": 10000
+  },
+
+  // 归一化规则（toLowerCase + '-'→'_'）写死在代码里（src/plan/shard.js），不提供配置开关
+  "appId": {
+    "required": true,
+    "column": "app_id",
+    "filterValue": "raw"
+  },
+
+  "missingTablePolicy": "empty",
+
+  "runtime": {
+    "exposeTargets": true,
+    "metaCacheTtlSec": 300,
+    "onSchemaMismatch": "warn",
+    "instanceHealthTtlSec": 30
+  },
+
+  "instances": {},
+  "bizTypes": {},
+  "tableRoutes": [],
+  "tables": {},
+  "tokens": []
+}

@@ -1,0 +1,25 @@
+{
+  // 本地机密配置（.gitignore，勿提交）。
+  // ★★ 本文件为 config-example 示例：实例名/密码/token 均为虚构占位，部署时替换为真实值。★★
+  // 1) 各实例只读账号密码（覆盖 biz.rules.jsonc 中同名实例）
+  // 2) 访问 token 清单（Bearer Token → actor + allowApps，appid 是权限边界）
+  //
+  // 生成新 token：npm run gen-token
+  // 注意：allowApps 中的 appid 归一化（小写、-→_）后不得互相碰撞，否则启动失败（V9）。
+
+  "instances": {
+    "shard-a":   { "password": "change-me" },
+    "shard-b":   { "password": "change-me" },
+    "shard-c":   { "password": "change-me" },
+    "archive-1": { "password": "change-me" }
+  },
+
+  "tokens": [
+    {
+      "token": "dev-token-change-me",
+      "actor": "dev",
+      "allowApps": ["*"],
+      "tables": ["*"]
+    }
+  ]
+}
